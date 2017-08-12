@@ -1,0 +1,114 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../gephi-url-builder/gephi-url-builder.html">
+<!--<link rel="import" href="../polymer/lib/elements/dom-if.html">-->
+<!--<link rel="import" href="../polymer/lib/elements/dom-repeat.html">-->
+
+<!--
+`cayley-export`
+Cayley data export element.
+
+@demo demo/index.html
+-->
+
+<dom-module id="cayley-export">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .layout.horizontal>h2,h3 {
+        margin: 10px 30px 10px 0;
+      }
+
+      small {
+        color: #777;
+        font-size: 11px;
+        margin-bottom: 5px;
+      }
+    </style>
+    <div class="layout horizontal end">
+      <h2>Export to file</h2>
+      <div>
+        <paper-dropdown-menu label="Format">
+          <paper-listbox class="dropdown-content" selected="{{_ind}}">
+            <template is="dom-repeat" items="[[formats]]">
+              <paper-item>[[item.id]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <paper-icon-button icon="file-download" on-click="runExport"></paper-icon-button>
+      </div>
+      <small style="margin-bottom: 20px;">GET [[_endpoint]]?format=[[format.id]]
+        <!--<br>Accept: [[_mime]]-->
+      </small>
+    </div>
+    <gephi-url-builder server="[[server]]" style="margin-top: 40px;"></gephi-url-builder>
+    <paper-toast id="toast" horizontal-align="right"></paper-toast>
+  </template>
+
+  <script>
+    /** @polymerElement */
+    class CayleyExport extends Polymer.Element {
+      static get is() { return 'cayley-export'; }
+      static get properties() {
+        return {
+          _endpoint: {
+            type: String,
+            value: '/api/v2/read'
+          },
+          _ind: {
+            type: Number,
+            value: 0
+          },
+          _mime: {
+            type: String,
+            computed: '_computeMime(format)'
+          },
+          format: {
+            type: Object,
+            computed: '_computeFormat(formats, _ind)'
+          },
+          server: String,
+          formats: Array
+        };
+      }
+      _buildURL() {
+        return this.server+this._endpoint+'?format='+this.format.id;
+      }
+      runExport(){
+        // TODO: set a filename somehow?
+        window.open(this._buildURL());
+      }
+      _computeFormat(formats, o){
+        if (!this.formats || this.formats.length === 0) return null;
+        return formats[o-0];
+      }
+      _computeMime(f){
+        if (!f || !f.mime || f.mime.length === 0) {
+          return '';
+        }
+        return f.mime[0];
+      }
+      _onResponse(r){
+        var m = r.detail.response;
+        this.$.toast.text = m.result;
+        this.$.toast.open();
+      }
+      _onError(r){
+        console.log('response:', r)
+        this.$.toast.text = 'Failed';
+        this.$.toast.open();
+      }
+    }
+
+    window.customElements.define(CayleyExport.is, CayleyExport);
+  </script>
+</dom-module>

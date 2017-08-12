@@ -1,0 +1,37 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<!--
+`cayley-help-icon`
+Cayley help icon with link.
+
+@demo demo/index.html
+-->
+
+<dom-module id="cayley-help-icon">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+      }
+    </style>
+    <a href="[[url]]">
+      <paper-icon-button icon="help-outline"></paper-icon-button>
+    </a>
+  </template>
+
+  <script>
+    class CayleyHelpIcon extends Polymer.Element {
+      static get is() { return 'cayley-help-icon'; }
+      static get properties() {
+        return {
+            url: String,
+          label: String // TODO: use
+        };
+      }
+    }
+
+    window.customElements.define(CayleyHelpIcon.is, CayleyHelpIcon);
+  </script>
+</dom-module>

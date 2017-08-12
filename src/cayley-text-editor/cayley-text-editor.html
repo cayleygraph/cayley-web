@@ -1,0 +1,78 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/juicy-ace-editor/juicy-ace-editor.html">
+
+<!--
+`cayley-text-editor`
+Cayley text editor.
+
+@demo demo/index.html
+-->
+
+<dom-module id="cayley-text-editor">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      juicy-ace-editor {
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+        min-width: 100px;
+      }
+    </style>
+    <juicy-ace-editor id="editor" theme$="[[_theme]]" mode$="[[_mode]]" readonly$="[[readonly]]"
+                      tabsize="2" fontsize$="[[fontsize]]" on-change="_valueChange" value="{{text}}"></juicy-ace-editor>
+  </template>
+
+  <script>
+    class CayleyTextEditor extends Polymer.Element {
+      static get is() { return 'cayley-text-editor'; }
+      static get properties() {
+        return {
+          text: { // TODO: replace with <content> block
+              type: String,
+              notify: true
+          },
+          fontsize: {
+            type: Number,
+            value: 16
+          },
+          theme: String,
+          lang: String,
+          readonly: {
+            type: Boolean,
+            value: false
+          },
+          _mode: {
+            type: String,
+            computed: 'computeMode(lang)'
+          },
+          _theme: {
+              type: String,
+              computed: 'computeTheme(theme)'
+          }
+        };
+      }
+      computeMode(lang) {
+        if (!lang || lang == '' || lang == 'plain') {
+            lang = 'plain_text'
+        }
+        return 'ace/mode/'+lang
+      }
+      computeTheme(theme) {
+          if (!theme || theme == '') {
+              return ''
+          }
+          return 'ace/theme/'+theme
+      }
+      _valueChange() {
+        if (this.text != this.$.editor.value) {
+            this.text = this.$.editor.value;
+        }
+      }
+    }
+
+    window.customElements.define(CayleyTextEditor.is, CayleyTextEditor);
+  </script>
+</dom-module>

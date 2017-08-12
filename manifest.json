@@ -1,0 +1,7 @@
+{
+  "name": "cayley-web",
+  "short_name": "cayley-web",
+  "description": "Cayley web interface",
+  "start_url": "/",
+  "display": "standalone"
+}

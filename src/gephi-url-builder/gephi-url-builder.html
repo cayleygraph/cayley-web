@@ -1,0 +1,76 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../cayley-help-icon/cayley-help-icon.html">
+
+<!--
+`gephi-url-builder`
+Gephi URL builder for Cayley.
+
+@demo demo/index.html
+-->
+
+<dom-module id="gephi-url-builder">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      .layout.horizontal>h2,h3 {
+        margin: 10px 30px 10px 0;
+      }
+      paper-input, paper-dropdown-menu {
+        max-width: 800px;
+        margin: 0 5px;
+      }
+    </style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <div class="layout horizontal end">
+      <cayley-help-icon url="https://github.com/cayleygraph/cayley/master/gephi/docs/GephiGraphStream.md"></cayley-help-icon>
+      <h3>Gephi GraphStream</h3>
+    </div>
+    <paper-input label="URL" value="[[url]]" readonly="true"></paper-input>
+    <div class="layout horizontal">
+      <paper-dropdown-menu label="Mode" selected-item-label="{{mode}}" style="width: 100px;">
+        <paper-listbox class="dropdown-content" selected="0">
+          <paper-item>raw</paper-item>
+          <paper-item>nodes</paper-item>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-input label="Limit" value="{{limit}}" style="width: 120px;"></paper-input>
+    </div>
+  </template>
+
+  <script>
+    class GephiURLBuilder extends Polymer.Element {
+      static get is() { return 'gephi-url-builder'; }
+      static get properties() {
+        return {
+          server: String,
+          mode: {
+            type: String,
+            value: 'raw'
+          },
+          limit: {
+            type: Number,
+            value: 10000
+          },
+          url: {
+            type: String,
+            readonly: true,
+            computed: 'computeURL(server, mode, limit)'
+          }
+        };
+      }
+      computeURL(server, mode, limit) {
+        if (limit <= 0) limit = -1;
+        return server+'/gephi/gs?mode='+mode+'&limit='+limit;
+      }
+    }
+
+    window.customElements.define(GephiURLBuilder.is, GephiURLBuilder);
+  </script>
+</dom-module>

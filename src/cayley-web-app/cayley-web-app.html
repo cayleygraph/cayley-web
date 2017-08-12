@@ -1,0 +1,262 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">>
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../cayley-help-icon/cayley-help-icon.html">
+<link rel="import" href="../gephi-url-builder/gephi-url-builder.html">
+<link rel="import" href="../cayley-text-editor/cayley-text-editor.html">
+<link rel="import" href="../cayley-import/cayley-import.html">
+<link rel="import" href="../cayley-export/cayley-export.html">
+
+<dom-module id="cayley-web-app">
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style>
+      :host {
+        display: block;
+        font-family: 'Open Sans', sans-serif;
+      }
+      /*a {*/
+        /*color: #000;*/
+        /*text-decoration: none;*/
+      /*}*/
+      small {
+        color: #777;
+        font-size: 11px;
+        margin-bottom: 10px;
+      }
+      .layout.horizontal>h2,h3 {
+        margin: 10px 30px 10px 0;
+      }
+      .main-title {
+        padding-left: 15px;
+        font-size: 34px;
+        font-weight: 300;
+      }
+      app-toolbar {
+        background-color: #fff;
+        color: #000000;
+        border-bottom: 1px solid rgba(0,0,0,0.2);
+      }
+      app-header {
+        @apply(--layout-fixed-top);
+        color: #fff;
+        --app-header-background-rear-layer: {
+          background-color: #ef6c00;
+        };
+      }
+      app-drawer {
+        --app-drawer-scrim-background: rgba(0, 0, 0, 0.1);
+        --app-drawer-content-container: {
+          background-color: #ffffff;
+        }
+      }
+      .logo {
+        width: 86px;
+        height: 50px;
+        padding: 0;
+      }
+      .main-area {
+        padding-top: 64px;
+        height: calc(100% - 64px);
+      }
+      /*#drawer {*/
+        /*z-index: 10;*/
+      /*}*/
+      .fill-height {
+        height: 100%;
+      }
+      .fill-width {
+        width: 100%;
+      }
+      .right-panel {
+        width: 200px;
+        /*background-color: #aaa;*/
+        border-right: 1px solid rgba(0,0,0,0.2);
+      }
+      .pad-page {
+        padding: 0 20px;
+      }
+    </style>
+    <app-header reveals>
+      <app-toolbar>
+        <!--<paper-icon-button class="logo" src="/img/cayley.png" on-click="_toggleDrawer"></paper-icon-button>-->
+        <iron-image sizing="contain" class="logo" src="/img/cayley.png"></iron-image>
+        <div class="main-title">Cayley</div>
+      </app-toolbar>
+    </app-header>
+    <!--<app-drawer id="drawer" swipe-open>-->
+
+    <!--</app-drawer>-->
+    <div class="main-area">
+      <div class="layout horizontal fill-height">
+        <div class="right-panel">
+          <paper-listbox selected="{{page}}">
+            <paper-item>Query</paper-item>
+            <paper-item>Visualize</paper-item>
+            <paper-item>Import</paper-item>
+            <paper-item>Export</paper-item>
+          </paper-listbox>
+        </div>
+        <iron-pages selected="[[page]]" class="fill-width">
+          <div class="layout vertical flex fill-height">
+            <div class="layout horizontal justified" style="padding: 0 10px; border-bottom: 1px solid rgba(0,0,0,0.2);">
+              <div class="layout horizontal center">
+                <cayley-help-icon url="[[ql.docs]]"></cayley-help-icon>
+                <paper-dropdown-menu label="Query language" selected-item-label="{{qlang}}">
+                  <paper-listbox class="dropdown-content" selected="0">
+                    <template is="dom-repeat" items="[[qlangs]]">
+                      <paper-item>[[item.id]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-input label="Limit" value="{{limit}}" style="width: 120px;"></paper-input>
+                <!--<paper-icon-button icon="assessment"></paper-icon-button>-->
+                <paper-icon-button icon="av:play-arrow" on-click="runQuery"></paper-icon-button>
+              </div>
+              <paper-dropdown-menu label="Editor theme" selected-item-label="{{theme}}">
+                <paper-listbox class="dropdown-content" selected="0">
+                  <template is="dom-repeat" items="[[themes]]">
+                    <paper-item>[[item]]</paper-item>
+                  </template>
+                </paper-listbox>
+              </paper-dropdown-menu>
+            </div>
+            <div class="layout horizontal flex">
+              <cayley-text-editor class="flex" theme="[[theme]]" lang="[[qmode]]" text="{{query}}"></cayley-text-editor>
+              <cayley-text-editor class="flex" theme="[[theme]]" lang="json" text="[[results]]" readonly="true"></cayley-text-editor>
+            </div>
+          </div>
+          <div>Visualization goes here</div>
+          <cayley-import class="pad-page" server="[[server]]" formats="[[iformats]]" theme="[[theme]]"></cayley-import>
+          <cayley-export class="pad-page" server="[[server]]" formats="[[eformats]]"></cayley-export>
+        </iron-pages>
+      </div>
+    </div>
+    <iron-ajax auto url="[[server]]/api/v2/formats" handle-as="json" last-response="{{formats}}"></iron-ajax>
+    <iron-ajax id="qapi" url="[[server]]/api/v1/query/[[qlang]]?limit=[[limit]]" method="POST" handle-as="text" last-response="{{_rawResults}}"></iron-ajax>
+  </template>
+  <script>
+    class CayleyApp extends Polymer.Element {
+      static get is() { return 'cayley-web-app'; }
+      static get properties() {
+        return {
+          server: {
+            type: String,
+            value: 'http://localhost:64210' // TODO: set to url of server
+          },
+          page: {type: Number, value: 0},
+          query: String,
+          _rawResults: String,
+          results: {
+              type: String,
+              computed: '_formatResults(_rawResults)'
+          },
+          ql: Object,
+          limit: {
+            type: Number,
+            value: 100
+          },
+          qlang: {
+            type: String,
+            value: 'gizmo',
+            observer: '_qlangChanged'
+          },
+          qmode: {
+            type: String,
+            value: 'javascript'
+          },
+          theme: {
+            type: String,
+            value: 'monokai'
+          },
+          themes: {
+            type: Array,
+            value() { return ['monokai','github'] }
+          },
+          qlangs: {
+            type: Array, // TODO: request from server
+            value() {
+              return [
+                  {id:'gizmo', name:'Gizmo', sample: 'g.V().GetLimit(10)\n', mode: 'javascript',
+                      docs: 'https://github.com/cayleygraph/cayley/blob/master/docs/GizmoAPI.md'},
+                  {id:'graphql', name:'GraphQL', sample: '{ nodes(first: 10){\n\tid\n}}\n', mode: 'plain_text',
+                      docs: 'https://github.com/cayleygraph/cayley/blob/master/docs/GraphQL.md'},
+                  {id:'mql', name:'MQL', sample: '[{\n\t"id": null\n}]', mode: 'json',
+                      docs: 'https://github.com/cayleygraph/cayley/blob/master/docs/MQL.md'}
+              ]
+            }
+          },
+          formats: {
+              type: Array,
+              observer: '_formatsChanged'
+          },
+          eformats: Array,
+          iformats: Array
+        };
+      }
+      _formatResults(s){
+        return JSON.stringify(JSON.parse(s), null, '\t')
+      }
+      _formatsChanged(formats){
+        var earr = [], iarr = [];
+        for (var i in formats) {
+            var f = formats[i];
+            if (f.id.includes('json')) {
+                f.mode = 'json'
+            } else {
+                f.mode = 'plain_text'
+            }
+            if (f.read) {
+                iarr.push(f)
+            }
+            if (f.write) {
+                earr.push(f)
+            }
+        }
+        var defaultFormat = 'nquads';
+        earr = earr.sort(function(a, b) {
+          if (a.id === defaultFormat) return -1;
+          if (b.id === defaultFormat) return +1;
+            return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
+        iarr = iarr.sort(function(a, b) {
+          if (a.id === defaultFormat) return -1;
+          if (b.id === defaultFormat) return +1;
+            return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
+        this.eformats = earr;
+        this.iformats = iarr;
+      }
+      _qlangChanged(lang) {
+          for (var i in this.qlangs) {
+              var ql = this.qlangs[i];
+              if (lang == ql.id) {
+                  this.query = ql.sample;
+                  this.qmode = ql.mode;
+                  this.ql = ql;
+                  break
+              }
+          }
+      }
+      runQuery() {
+          this.$.qapi.body = this.query;
+          this.$.qapi.generateRequest();
+      }
+      _toggleDrawer(){ this.$.drawer.toggle() }
+    }
+
+    window.customElements.define(CayleyApp.is, CayleyApp);
+  </script>
+</dom-module>
