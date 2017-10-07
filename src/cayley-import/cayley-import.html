@@ -40,6 +40,9 @@ Cayley data import element.
       paper-spinner-lite[active] {
         margin: 10px;
       }
+      [hidden] {
+        display: none;
+      }
     </style>
     <div class="layout horizontal end">
       <h2>Import</h2>
@@ -68,9 +71,7 @@ Cayley data import element.
 
     <paper-input id="ifile" type="file" on-change="_fileChange"></paper-input>
 
-    <template is="dom-if" if="[[!_isFile]]">
-      <cayley-text-editor id="editor" class="flex" readonly="[[_loading]]" theme="[[theme]]"></cayley-text-editor>
-    </template>
+    <cayley-text-editor id="editor" hidden$="[[_isFile]]" class="flex" readonly="[[_loading]]" theme="[[theme]]"></cayley-text-editor>
 
     <iron-ajax id="api" url="[[server]][[_endpoint]]" method="POST" loading="{{_loading}}"
                handle-as="json" on-response="_onResponse" on-error="_onError"></iron-ajax>
@@ -119,7 +120,7 @@ Cayley data import element.
         this.$.api.generateRequest();
       }
       runUpload(){
-        var file = this._getInputFile();
+        const file = this._getInputFile();
         console.log('upload:', file.name, file.size+' bytes');
         this.$.api.body = file;
         if (this._mime != '') {
@@ -139,21 +140,30 @@ Cayley data import element.
         }
         return f.mime[0];
       }
-      _getInputFile() {
-        return this.$.ifile.inputElement.inputElement.files[0]
+      _getInputFiles() {
+        return this.$.ifile.inputElement.inputElement.files
       }
-      _fileChange(){
-        this._isFile = true;
+      _getInputFile() {
+        return this._getInputFiles()[0]
+      }
+      _fileChange(r){
+        this._isFile = this._getInputFiles().length > 0;
       }
       _onResponse(r){
-        var m = r.detail.response;
-        this.$.toast.text = m.result;
+        let m = r.detail.response;
+        if (!!m.error) {
+          this._showMessage(m.error);
+          return
+        }
+        this._showMessage(m.result);
+      }
+      _showMessage(e){
+        this.$.toast.text = e;
         this.$.toast.open();
       }
       _onError(r){
-        console.log('response:', r)
-        this.$.toast.text = 'Failed';
-        this.$.toast.open();
+        console.log('error:', r);
+        this._showMessage('Failed');
       }
     }
 
